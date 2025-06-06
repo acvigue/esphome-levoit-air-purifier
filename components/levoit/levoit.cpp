@@ -293,7 +293,7 @@ void Levoit::command_sync_() {
         .payload_len = 2
       });
       // setting that its done, not sure how to check filter status yet
-      current_state_ &= ~static_cast<uint32_t>(LevoitState::FILTER_RESET);
+      req_on_state_ &= ~static_cast<uint32_t>(LevoitState::FILTER_RESET);
     }
 
     if (req_off_state_ & static_cast<uint32_t>(LevoitState::AIR_QUALITY_CHANGE))
