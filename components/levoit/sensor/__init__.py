@@ -33,10 +33,10 @@ CONFIG_SCHEMA = (
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_LEVOIT_ID])
 
-    if pm25 := config.get(CONF_PM_2_5):
-        var = await sensor.new_sensor(pm25, parent, LevoitSensorPurpose.PM25)
-        await cg.register_component(var, pm25)
+    if config_pm25 := config.get(CONF_PM_2_5):
+        var = await sensor.new_sensor(config_pm25, parent, LevoitSensorPurpose.PM25)
+        await cg.register_component(var, config_pm25)
 
-    if air_quality := config.get(CONF_AIR_QUALITY):
-        var = await sensor.new_sensor(air_quality, parent, LevoitSensorPurpose.AIR_QUALITY)
-        await cg.register_component(var, air_quality)
+    if config_air_quality := config.get(CONF_AIR_QUALITY):
+        var = await sensor.new_sensor(config_air_quality, parent, LevoitSensorPurpose.AIR_QUALITY)
+        await cg.register_component(var, config_air_quality)
