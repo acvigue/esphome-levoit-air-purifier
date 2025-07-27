@@ -444,7 +444,7 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
       pm25NAN = (payload[12] == 0xFF && payload[13] == 0xFF);
       if (!pm25NAN) {
         uint16_t raw_value = (payload[13] << 8) + payload[12];
-        uint32_t new_pm25Value = (raw_value * 10) / 10000;
+        uint32_t new_pm25Value = (raw_value * 10);
         
         if (new_pm25Value != pm25_value) {
           pm25Change = true;
