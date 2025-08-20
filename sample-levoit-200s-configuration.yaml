@@ -52,7 +52,11 @@ fan:
   - platform: levoit
     name: Levoit Purifier
 
-#sensor:
+# This empty platform section for the levoit need to be there for the
+# `core200s`, otherwise it will not compile.
+sensor:
+  - platform: levoit
+
 #   Uptime sensor.
 #  - platform: uptime
 #    name: Uptime
@@ -83,10 +87,3 @@ select:
       name: "Fan Mode"
     nightlight_mode:
       name: "Nightlight Mode"
-
-sensor:
-  - platform: levoit
-    pm_2_5:
-      name: PM2.5
-    air_quality:
-      name: Air Quality Index      
