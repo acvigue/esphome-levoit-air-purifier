@@ -12,7 +12,7 @@ CODEOWNERS = ["@acvigue"]
 
 LevoitFan = levoit_ns.class_("LevoitFan", cg.Component, fan.Fan)
 
-CONFIG_SCHEMA = fan.FAN_SCHEMA.extend(
+CONFIG_SCHEMA = fan.fan_schema(LevoitFan).extend(
     {
         cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(LevoitFan),
         cv.GenerateID(CONF_LEVOIT_ID): cv.use_id(Levoit),
