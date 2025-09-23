@@ -40,4 +40,4 @@ async def to_code(config):
     if CONF_COMMAND_TIMEOUT in config:
         cg.add(var.set_command_timeout(config[CONF_COMMAND_TIMEOUT]))
     if CONF_STATUS_POLL_SECONDS in config:
-        cg.add(var.set_command_timeout(config[CONF_STATUS_POLL_SECONDS]))
+        cg.add(var.set_status_poll_seconds(config[CONF_STATUS_POLL_SECONDS]))
