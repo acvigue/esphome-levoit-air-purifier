@@ -31,7 +31,7 @@ wifi:
       password: !secret wifi_password
 
   ap:
-    ssid: "Levoit-Core300S Fallback Hotspot"
+    ssid: "Levoit-Core200S Fallback Hotspot"
     password: !secret ap_password
 
 captive_portal:
