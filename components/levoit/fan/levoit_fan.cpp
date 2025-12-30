@@ -20,7 +20,7 @@ void LevoitFan::setup() {
 
       if (!this->state || currentBits & static_cast<uint32_t>(LevoitState::FAN_MANUAL))
       {
-        this->preset_mode = "Manual";
+        this->set_preset_mode_("Manual");
         uint8_t newSpeed = 0;
 
         if (currentBits & static_cast<uint32_t>(LevoitState::FAN_SPEED1))
@@ -36,12 +36,12 @@ void LevoitFan::setup() {
       }
       else if (currentBits & static_cast<uint32_t>(LevoitState::FAN_AUTO))
       {
-        this->preset_mode = "Auto";
+        this->set_preset_mode_("Auto");
         this->speed = 0;
       }
       else if (currentBits & static_cast<uint32_t>(LevoitState::FAN_SLEEP))
       {
-        this->preset_mode = "Sleep";
+        this->set_preset_mode_("Sleep");
         this->speed = 0;
       }
       else
@@ -122,17 +122,19 @@ void LevoitFan::control(const fan::FanCall &call) {
     }
   }
 
-  std::string mode = call.get_preset_mode();
-  ESP_LOGV(TAG, "Setting fan mode = %s", mode.c_str());
-  if (mode == "Manual") {
-    onMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::POWER);
-    offMask |= static_cast<uint32_t>(LevoitState::FAN_AUTO) + static_cast<uint32_t>(LevoitState::FAN_SLEEP);
-  } else if (mode == "Auto") {
-    onMask |= static_cast<uint32_t>(LevoitState::FAN_AUTO) + static_cast<uint32_t>(LevoitState::POWER);
-    offMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::FAN_SLEEP);
-  } else if (mode == "Sleep") {
-    onMask |= static_cast<uint32_t>(LevoitState::FAN_SLEEP) + static_cast<uint32_t>(LevoitState::POWER);
-    offMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::FAN_AUTO);
+  if (call.has_preset_mode()) {
+    std::string mode = call.get_preset_mode();
+    ESP_LOGV(TAG, "Setting fan mode = %s", mode.c_str());
+    if (mode == "Manual") {
+      onMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::POWER);
+      offMask |= static_cast<uint32_t>(LevoitState::FAN_AUTO) + static_cast<uint32_t>(LevoitState::FAN_SLEEP);
+    } else if (mode == "Auto") {
+      onMask |= static_cast<uint32_t>(LevoitState::FAN_AUTO) + static_cast<uint32_t>(LevoitState::POWER);
+      offMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::FAN_SLEEP);
+    } else if (mode == "Sleep") {
+      onMask |= static_cast<uint32_t>(LevoitState::FAN_SLEEP) + static_cast<uint32_t>(LevoitState::POWER);
+      offMask |= static_cast<uint32_t>(LevoitState::FAN_MANUAL) + static_cast<uint32_t>(LevoitState::FAN_AUTO);
+    }
   }
 
   if (onMask || offMask) {
