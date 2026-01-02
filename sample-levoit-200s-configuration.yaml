@@ -50,13 +50,13 @@ levoit:
 
 fan:
   - platform: levoit
-    name: Levoit Purifier
+    name: "Levoit Purifier"
 
-# This empty platform section for the levoit need to be there for the
-# `core200s`, otherwise it will not compile.
-sensor:
+light:
   - platform: levoit
+    name: "Nightlight"
 
+# sensor:
 #   Uptime sensor.
 #  - platform: uptime
 #    name: Uptime
@@ -81,9 +81,12 @@ button:
     filter_reset:
       name: "Filter Reset"
 
-select:
-  - platform: levoit
-    fan_mode:
-      name: "Fan Mode"
-    nightlight_mode:
-      name: "Nightlight Mode"
+# Optional select elements:
+# * fan_mode is available via the fan entity
+# * nightlight_mode is avaiable via the light entity
+# select:
+#   - platform: levoit
+#     fan_mode:
+#       name: "Fan Mode"
+#     nightlight_mode:
+#       name: "Nightlight Mode"
