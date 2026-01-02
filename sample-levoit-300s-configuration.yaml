@@ -43,21 +43,21 @@ uart:
 
 levoit:
   id: levoit1
-#  model: core300s  # default core300s
+#  model: core300s  # default core300s, note: this config also works for core400s
 #  command_delay: 300 # default 300
 #  command_timeout: 200 # default 200
 #  status_poll_seconds: 0 # default 0, not needed if you get auto status msgs
 
 fan:
   - platform: levoit
-    name: Levoit Purifier
+    name: "Levoit Purifier"
 
 sensor:
 #   Uptime sensor.
 #  - platform: uptime
 #    name: Uptime
 
-# WiFi Signal sensor.
+#   WiFi Signal sensor.
 #  - platform: wifi_signal
 #    name: WiFi Signal
 #    update_interval: 60s
@@ -65,9 +65,9 @@ sensor:
   # PM2.5 sensor
   - platform: levoit
     pm_2_5:
-      name: PM2.5
+      name: "PM2.5"
     air_quality:
-      name: Air Quality Index
+      name: "Air Quality Index"
 
 switch:
   - platform: levoit
@@ -85,7 +85,8 @@ button:
 
 select:
   - platform: levoit
-    fan_mode:
-      name: "Fan Mode"
     auto_mode:
       name: "Auto Mode"
+    # Optional: fan_mode is available via the fan entity
+    # fan_mode:
+    #   name: "Fan Mode"
