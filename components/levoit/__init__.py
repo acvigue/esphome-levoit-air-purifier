@@ -15,7 +15,7 @@ CONF_COMMAND_DELAY = "command_delay"
 CONF_COMMAND_TIMEOUT = "command_timeout"
 CONF_STATUS_POLL_SECONDS = "status_poll_seconds"
 
-VALID_MODELS = ["core200s", "core300s", "core400s"]
+VALID_MODELS = ["core200s", "core300s", "core400s", "core600s"]
 
 levoit_ns = cg.esphome_ns.namespace("levoit")
 Levoit = levoit_ns.class_("Levoit", cg.Component, uart.UARTDevice)
