@@ -12,12 +12,12 @@
 namespace esphome {
 namespace levoit {
 
-enum class LevoitDeviceModel : uint8_t { NONE, CORE_200S, CORE_300S, CORE_400S };
+enum class LevoitDeviceModel : uint8_t { NONE, CORE_200S, CORE_300S, CORE_400S, CORE_600S };
 enum class LevoitPacketType : uint8_t { SEND_MESSAGE = 0x22, ACK_MESSAGE = 0x12, ERROR = 0x52 };
 enum class LevoitPayloadType : uint32_t {
   STATUS_REQUEST = 0x013140,
   STATUS_RESPONSE = 0x013040,
-  AUTO_STATUS = 0x016040, // I only know this value for 200S, so might be wrong
+  AUTO_STATUS = 0x016040,  // I only know this value for 200S, so might be wrong
   SET_FAN_AUTO_MODE = 0x01E6A5,
   SET_FAN_MANUAL = 0x0160A2,
   SET_FAN_MODE = 0x01E0A5,
@@ -79,14 +79,21 @@ static_assert(std::is_trivially_copyable<LevoitCommand>::value,
 using PayloadTypeOverrideMap = std::unordered_map<LevoitDeviceModel, std::unordered_map<LevoitPayloadType, uint32_t>>;
 
 static const PayloadTypeOverrideMap MODEL_SPECIFIC_PAYLOAD_TYPES = {
-    {LevoitDeviceModel::CORE_400S,
+    {LevoitDeviceModel::CORE_600S,
      {
-         {LevoitPayloadType::STATUS_REQUEST, 0x01b140}, {LevoitPayloadType::STATUS_RESPONSE, 0x01b040},
+         {LevoitPayloadType::AUTO_STATUS, 0x014041}
          // ... add other model-specific overrides here ...
      }},
-     {LevoitDeviceModel::CORE_200S,
+    {LevoitDeviceModel::CORE_400S,
      {
-         {LevoitPayloadType::STATUS_REQUEST, 0x016140}, {LevoitPayloadType::STATUS_RESPONSE, 0x016140},
+         {LevoitPayloadType::STATUS_REQUEST, 0x01b140},
+         {LevoitPayloadType::STATUS_RESPONSE, 0x01b040},
+         // ... add other model-specific overrides here ...
+     }},
+    {LevoitDeviceModel::CORE_200S,
+     {
+         {LevoitPayloadType::STATUS_REQUEST, 0x016140},
+         {LevoitPayloadType::STATUS_RESPONSE, 0x016140},
          {LevoitPayloadType::AUTO_STATUS, 0x016040}
          // ... add other model-specific overrides here ...
      }},

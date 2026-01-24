@@ -174,7 +174,7 @@ void Levoit::command_sync_() {
 
     // fan mode
     if (req_on_state_ & static_cast<uint32_t>(LevoitState::FAN_MANUAL)) {
-      if (device_model_ == LevoitDeviceModel::CORE_400S)
+      if (device_model_ == LevoitDeviceModel::CORE_400S || device_model_ == LevoitDeviceModel::CORE_600S)
         send_command_(LevoitCommand {
           .payloadType = LevoitPayloadType::SET_FAN_MANUAL,
           .packetType = LevoitPacketType::SEND_MESSAGE,
@@ -435,14 +435,27 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
     if (xSemaphoreTake(stateChangeMutex_, portMAX_DELAY) == pdTRUE) {
       uint32_t previousState = current_state_;
       bool power = payload[4];
-      bool display = payload[device_model_ == LevoitDeviceModel::CORE_400S ? 9 : 7] != 0x00;
-      bool displayLock = payload[device_model_ == LevoitDeviceModel::CORE_200S ? 11 : 14] != 0x00;
-
+      uint8_t displayIndex = 7;
+      uint8_t displayLockIndex = 14;
       uint8_t fanSpeedIndex = 9;
       switch (device_model_) {
-        case LevoitDeviceModel::CORE_400S: fanSpeedIndex = 7; break;
-        case LevoitDeviceModel::CORE_200S: fanSpeedIndex = 6; break;
+        case LevoitDeviceModel::CORE_600S: 
+          fanSpeedIndex = 7;
+          displayIndex = 9;
+          displayLockIndex = 15;
+          break;
+        case LevoitDeviceModel::CORE_400S:
+          fanSpeedIndex = 7;
+          displayIndex = 9;
+          break;
+        case LevoitDeviceModel::CORE_200S:
+          fanSpeedIndex = 6;
+          displayLockIndex = 11;
+          break;
       }
+      bool display = payload[displayIndex] != 0x00;
+      bool displayLock = payload[displayLockIndex] != 0x00;
+  
       uint8_t fanSpeed = power ? payload[fanSpeedIndex] : 0;
       bool fan1 = fanSpeed == 1; bool fan2 = fanSpeed == 2;
       bool fan3 = fanSpeed == 3; bool fan4 = fanSpeed == 4;
@@ -469,7 +482,7 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
         nightLightLow = payload[12] == 0x32;
         nightLightHigh = payload[12] == 0x64;
       } else {
-        // Core 300S/400S have PM2.5 sensor at payload[12-13]
+        // Core 300S/400S/600S have PM2.5 sensor at payload[12-13]
         pm25NAN = (payload[12] == 0xFF && payload[13] == 0xFF);
         if (!pm25NAN) {
           uint16_t raw_value = (payload[13] << 8) + payload[12];
@@ -686,12 +699,14 @@ void Levoit::set_status_poll_seconds(int interval) {
 }
 
 void Levoit::set_device_model(std::string model) {
-  if (model == "core300s") {
+  if (model == "core200s") {
+    device_model_ = LevoitDeviceModel::CORE_200S;
+  } else if (model == "core300s") {
     device_model_ = LevoitDeviceModel::CORE_300S;
   } else if (model == "core400s") {
     device_model_ = LevoitDeviceModel::CORE_400S;
-  } else if (model == "core200s") {
-    device_model_ = LevoitDeviceModel::CORE_200S;
+  } else if (model == "core600s") {
+    device_model_ = LevoitDeviceModel::CORE_600S;
   } else {
     ESP_LOGW(TAG, "Unknown device model: %s", model.c_str());
   }
