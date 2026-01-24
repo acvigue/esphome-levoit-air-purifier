@@ -438,11 +438,15 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
       uint8_t displayIndex = 7;
       uint8_t displayLockIndex = 14;
       uint8_t fanSpeedIndex = 9;
+      uint8_t pm25HighIndex = 13;
+      uint8_t pm25LowIndex = 12;
       switch (device_model_) {
         case LevoitDeviceModel::CORE_600S: 
           fanSpeedIndex = 7;
           displayIndex = 9;
           displayLockIndex = 15;
+          pm25HighIndex = 14;
+          pm25LowIndex = 13;
           break;
         case LevoitDeviceModel::CORE_400S:
           fanSpeedIndex = 7;
@@ -483,9 +487,9 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
         nightLightHigh = payload[12] == 0x64;
       } else {
         // Core 300S/400S/600S have PM2.5 sensor at payload[12-13]
-        pm25NAN = (payload[12] == 0xFF && payload[13] == 0xFF);
+        pm25NAN = (payload[pm25LowIndex] == 0xFF && payload[pm25HighIndex] == 0xFF);
         if (!pm25NAN) {
-          uint16_t raw_value = (payload[13] << 8) + payload[12];
+          uint16_t raw_value = (payload[pm25HighIndex] << 8) + payload[pm25LowIndex];
           uint32_t new_pm25Value = (raw_value * 10);
 
           if (new_pm25Value != pm25_value) {
