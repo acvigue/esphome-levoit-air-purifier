@@ -105,7 +105,7 @@ void LevoitFan::control(const fan::FanCall &call) {
 
   if (call.get_speed().has_value()) {
     uint8_t targetSpeed = *call.get_speed();
-    ESP_LOGV(TAG, "Setting fan speed = %lu", targetSpeed);
+    ESP_LOGV(TAG, "Setting fan speed = %d", targetSpeed);
 
     switch (targetSpeed) {
       case 0:
