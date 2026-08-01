@@ -562,7 +562,11 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
             listener.func(currentBits);
           }
         }
-        ESP_LOGV(TAG, "Current State: %u, Requested On: %u, Request Off: %u", current_state_, req_on_state_, req_off_state_);
+        ESP_LOGV(TAG,
+         "Current State: %lu, Requested On: %lu, Request Off: %lu",
+         (unsigned long) current_state_,
+         (unsigned long) req_on_state_,
+         (unsigned long) req_off_state_);
       }
       xSemaphoreGive(stateChangeMutex_);
       xTaskNotifyGive(maintTaskHandle_);
@@ -605,8 +609,11 @@ void Levoit::set_request_state(uint32_t onMask, uint32_t offMask, bool acquireMu
     req_on_state_ &= ~offMask;
   }
 
-  ESP_LOGV(TAG, "set_request_state - Current State: %u, Requested On: %u, Request Off: %u", current_state_,
-           req_on_state_, req_off_state_);
+  ESP_LOGV(TAG,
+         "Current State: %lu, Requested On: %lu, Request Off: %lu",
+         (unsigned long) current_state_,
+         (unsigned long) req_on_state_,
+         (unsigned long) req_off_state_);
 
   if (gotMutex)
     xSemaphoreGive(stateChangeMutex_);
