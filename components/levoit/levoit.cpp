@@ -468,8 +468,8 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
           displayLockIndex = 11;
           break;
 		case LevoitDeviceModel::CORE_300S:
-		  fanSpeedIndex = 7;
-		  displayIndex = 9;
+		  fanSpeedIndex = 6;
+		  displayIndex = 7;
 		  break;
 
 		case LevoitDeviceModel::NONE:
