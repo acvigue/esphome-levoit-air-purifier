@@ -88,7 +88,7 @@ void Levoit::maint_task_() {
       
 
       if (previousState != current_state_) {
-        ESP_LOGV(TAG, "State Changed from %u to %u", previousState, current_state_);
+        ESP_LOGV(TAG, "State Changed from %lu to %lu", previousState, current_state_);
 
         uint32_t wifiLights = 
           static_cast<uint32_t>(LevoitState::WIFI_LIGHT_SOLID) |
@@ -346,9 +346,9 @@ void Levoit::process_rx_queue_task_() {
 
 void Levoit::dump_config() { 
     ESP_LOGCONFIG(TAG, "Levoit!"); 
-    ESP_LOGCONFIG(TAG, "  Command Delay: %d ms", this->command_delay_);
-    ESP_LOGCONFIG(TAG, "  Command Timeout: %d ms", this->command_timeout_);
-    ESP_LOGCONFIG(TAG, "  Status Poll Seconds: %d s", this->status_poll_seconds);
+    ESP_LOGCONFIG(TAG, "  Command Delay: %lu ms", this->command_delay_);
+    ESP_LOGCONFIG(TAG, "  Command Timeout: %lu ms", this->command_timeout_);
+    ESP_LOGCONFIG(TAG, "  Status Poll Seconds: %lu s", this->status_poll_seconds);
 }
 
 bool Levoit::validate_message_() {
@@ -417,7 +417,7 @@ bool Levoit::validate_message_() {
   if (data[1] != 0x12 || payloadLength - 3 != 1) {
     this->handle_payload_(payloadType, payload_data, payloadLength - 3);
   } else if (data[1] == 0x12) {
-    ESP_LOGV(TAG, "Received ACK (%06x)", (uint32_t) payloadType);
+    ESP_LOGV(TAG, "Received ACK (%06lx)", (unsigned long) payloadType);
   }
 
   // acknowledge packet if required
@@ -439,7 +439,7 @@ bool Levoit::validate_message_() {
 void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t len) {
   LevoitPayloadType payloadType = static_cast<LevoitPayloadType>(get_model_specific_payload_type(type));
 
-  ESP_LOGV(TAG, "Received command (%06x): %s", (uint32_t) payloadType, format_hex_pretty(payload, len).c_str());
+  ESP_LOGV(TAG, "Received command (%06lx): %s", (uint32_t) payloadType, format_hex_pretty(payload, len).c_str());
   
   if (payloadType == static_cast<LevoitPayloadType>(get_model_specific_payload_type(LevoitPayloadType::STATUS_RESPONSE)) 
         || payloadType == static_cast<LevoitPayloadType>(get_model_specific_payload_type(LevoitPayloadType::AUTO_STATUS))) {
@@ -467,6 +467,14 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
           fanSpeedIndex = 6;
           displayLockIndex = 11;
           break;
+		case LevoitDeviceModel::CORE_300S:
+		  fanSpeedIndex = 6;
+		  displayIndex = 7;
+		  break;
+
+		case LevoitDeviceModel::NONE:
+		  ESP_LOGW(TAG, "Device model NONE encountered");
+		  break;
       }
       bool display = payload[displayIndex] != 0x00;
       bool displayLock = payload[displayLockIndex] != 0x00;
@@ -537,7 +545,7 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
       set_bit_(current_state_, airQualityChange, LevoitState::AIR_QUALITY_CHANGE);
 
       if (previousState != current_state_) {
-        ESP_LOGV(TAG, "State Changed from %u to %u", previousState, current_state_);
+        ESP_LOGV(TAG, "State Changed from %lu to %lu", previousState, current_state_);
 
         uint32_t removeBits = current_state_ & req_on_state_;
         if (removeBits)
@@ -554,7 +562,11 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
             listener.func(currentBits);
           }
         }
-        ESP_LOGV(TAG, "Current State: %u, Requested On: %u, Request Off: %u", current_state_, req_on_state_, req_off_state_);
+        ESP_LOGV(TAG,
+         "Current State: %lu, Requested On: %lu, Request Off: %lu",
+         (unsigned long) current_state_,
+         (unsigned long) req_on_state_,
+         (unsigned long) req_off_state_);
       }
       xSemaphoreGive(stateChangeMutex_);
       xTaskNotifyGive(maintTaskHandle_);
@@ -597,8 +609,11 @@ void Levoit::set_request_state(uint32_t onMask, uint32_t offMask, bool acquireMu
     req_on_state_ &= ~offMask;
   }
 
-  ESP_LOGV(TAG, "set_request_state - Current State: %u, Requested On: %u, Request Off: %u", current_state_,
-           req_on_state_, req_off_state_);
+  ESP_LOGV(TAG,
+         "Current State: %lu, Requested On: %lu, Request Off: %lu",
+         (unsigned long) current_state_,
+         (unsigned long) req_on_state_,
+         (unsigned long) req_off_state_);
 
   if (gotMutex)
     xSemaphoreGive(stateChangeMutex_);
@@ -678,13 +693,13 @@ void Levoit::process_raw_command_(LevoitCommand command) {
                                   ? "ACK"
                                   : ((command.packetType == LevoitPacketType::SEND_MESSAGE) ? "CMD" : "UNKNOWN");
   this->write_array(rawPacket);
-  ESP_LOGV(TAG, "Sending %s (%06x): %s", packetTypeStr, (uint32_t) command.payloadType,
+  ESP_LOGV(TAG, "Sending %s (%06lx): %s", packetTypeStr, (uint32_t) command.payloadType,
            format_hex_pretty(rawPacket.data(), rawPacket.size()).c_str());
 
   // await ACK, not really needed but helps with pacing commands
   // command will retry if state is not achieved
   if (command.packetType != LevoitPacketType::ACK_MESSAGE && ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(command_timeout_)) == 0) {
-    ESP_LOGW(TAG, "Timeout waiting for ACK for command %s (%06x): %s", packetTypeStr, (uint32_t) command.payloadType,
+    ESP_LOGW(TAG, "Timeout waiting for ACK for command %s (%06lx): %s", packetTypeStr, (unsigned long) command.payloadType,
           format_hex_pretty(rawPacket.data(), rawPacket.size()).c_str());
   }
 }

@@ -46,7 +46,7 @@ void LevoitFan::setup() {
       }
       else
       {
-        ESP_LOGW(TAG, "Fan preset mode not set: %u", currentBits);
+        ESP_LOGW(TAG, "Fan preset mode not set: %lu", currentBits);
       }
 
       this->publish_state();
@@ -61,7 +61,7 @@ void LevoitFan::setup() {
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
       this->set_supported_preset_modes({"Manual", "Sleep", "Auto"});
 #else
-      this->traits_.set_supported_preset_modes({"Manual", "Sleep", "Auto"});
+      this->set_supported_preset_modes({"Manual", "Sleep", "Auto"});
 #endif
       break;
     case LevoitDeviceModel::CORE_300S:
@@ -69,7 +69,7 @@ void LevoitFan::setup() {
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
       this->set_supported_preset_modes({"Manual", "Sleep", "Auto"});
 #else
-      this->traits_.set_supported_preset_modes({"Manual", "Sleep", "Auto"});
+      this->set_supported_preset_modes({"Manual", "Sleep", "Auto"});
 #endif
       break;
     case LevoitDeviceModel::CORE_200S:
@@ -78,7 +78,7 @@ void LevoitFan::setup() {
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
       this->set_supported_preset_modes({"Manual", "Sleep"});
 #else
-      this->traits_.set_supported_preset_modes({"Manual", "Sleep"});
+      this->set_supported_preset_modes({"Manual", "Sleep"});
 #endif
       break;
   }
@@ -105,7 +105,7 @@ void LevoitFan::control(const fan::FanCall &call) {
 
   if (call.get_speed().has_value()) {
     uint8_t targetSpeed = *call.get_speed();
-    ESP_LOGV(TAG, "Setting fan speed = %u", targetSpeed);
+    ESP_LOGV(TAG, "Setting fan speed = %d", targetSpeed);
 
     switch (targetSpeed) {
       case 0:
