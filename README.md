@@ -44,6 +44,16 @@ Disconnect and reconnect the USB UART to make sure the ESP32 restarts. Once powe
 
 After confirming, reassemble, and enjoy :)
 
+## Filter Life
+The `filter_life` and `filter_runtime` sensors track filter usage and drive the replace-filter indicator. Tracking starts at 100% / 0 h unless `filter_initial_runtime_minutes` and `filter_initial_dust` are set; these are only used when no filter state has been saved yet.
+
+If you want to carry over the old values, read them **before erasing** the flash (tested on a Core 300S,  firmware 1.1.09):
+```bash
+esptool read-flash 0x310000 0x20000 usercfg.bin
+python $IDF_PATH/components/nvs_flash/nvs_partition_tool/nvs_tool.py -d blobs usercfg.bin
+```
+In the 20-byte `airfilter_info` blob, bytes 0-3 are the runtime in minutes and bytes 8-11 the dust, both little-endian (e.g. `a2 48 02 00` = 149666). Remove these options once the values have been saved.
+
 # Contributing
 All contributions are welcome! Please open an issue or a PR.
 
