@@ -107,6 +107,9 @@ class Levoit : public Component, public uart::UARTDevice {
   void setup() override;
   void dump_config() override;
   void set_device_model(std::string model);
+  // filter life support for the sensor platform, reading clears the pending reset request
+  bool get_filter_inputs(bool &power, uint8_t &fanLevel, uint16_t &pm25, bool &statusSeen, bool &resetRequested);
+  void set_filter_led(bool on);
   void set_command_delay(int delay);
   void set_command_timeout(int timeout);
   void set_status_poll_seconds(int interval);
@@ -124,7 +127,7 @@ class Levoit : public Component, public uart::UARTDevice {
  protected:
   QueueHandle_t rx_queue_;
   QueueHandle_t tx_queue_;
-  SemaphoreHandle_t stateChangeMutex_;
+  SemaphoreHandle_t stateChangeMutex_ = nullptr;
   TaskHandle_t procTxQueueTaskHandle_;
   TaskHandle_t maintTaskHandle_;
   uint32_t current_state_ = 0;
@@ -138,6 +141,12 @@ class Levoit : public Component, public uart::UARTDevice {
   uint8_t sequenceNumber_ = 0;
   std::vector<uint8_t> rx_message_;
   std::vector<LevoitStateListener> state_listeners_;
+
+  // filter life inputs, guarded by stateChangeMutex_
+  uint8_t filterFanLevel_ = 0xFF;
+  bool filterStatusSeen_ = false;
+  bool filterResetRequested_ = false;
+
   void rx_queue_task_();
   void process_rx_queue_task_();
   void process_tx_queue_task_();

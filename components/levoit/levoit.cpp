@@ -49,6 +49,30 @@ void Levoit::setup() {
       "MaintTask", 4096, this, 1, &maintTaskHandle_, tskNO_AFFINITY);
 }
 
+bool Levoit::get_filter_inputs(bool &power, uint8_t &fanLevel, uint16_t &pm25, bool &statusSeen, bool &resetRequested) {
+  if (stateChangeMutex_ == nullptr || xSemaphoreTake(stateChangeMutex_, portMAX_DELAY) != pdTRUE) {
+    return false;
+  }
+  power = current_state_ & static_cast<uint32_t>(LevoitState::POWER);
+  fanLevel = filterFanLevel_;
+  // pm25_value is in 0.1 ug/m3 and keeps the last valid reading, the stock firmware caps it at 999
+  pm25 = pm25_value / 10 > 999 ? 999 : pm25_value / 10;
+  statusSeen = filterStatusSeen_;
+  resetRequested = filterResetRequested_;
+  filterResetRequested_ = false;
+  xSemaphoreGive(stateChangeMutex_);
+  return true;
+}
+
+void Levoit::set_filter_led(bool on) {
+  send_command_(LevoitCommand {
+    .payloadType = LevoitPayloadType::SET_FILTER_LED,
+    .packetType = LevoitPacketType::SEND_MESSAGE,
+    .payload = {0x00, on ? (uint8_t) 0x01 : (uint8_t) 0x00},
+    .payload_len = 2
+  });
+}
+
 void Levoit::maint_task_() {
   uint32_t lastStatusPollTime = 0;
 
@@ -305,6 +329,7 @@ void Levoit::command_sync_() {
       });
       // setting that its done, not sure how to check filter status yet
       req_on_state_ &= ~static_cast<uint32_t>(LevoitState::FILTER_RESET);
+      filterResetRequested_ = true;
     }
 
     if (req_off_state_ & static_cast<uint32_t>(LevoitState::AIR_QUALITY_CHANGE))
@@ -413,6 +438,17 @@ bool Levoit::validate_message_() {
 
   uint8_t *payload_data = data + 9;
 
+  // the MCU sends a reset-filter message when the filter is reset on the device panel
+  LevoitPayloadType resetFilterType =
+      static_cast<LevoitPayloadType>(get_model_specific_payload_type(LevoitPayloadType::SET_RESET_FILTER));
+  if (data[1] == 0x22 && payloadType == resetFilterType) {
+    ESP_LOGI(TAG, "Filter reset requested by device");
+    if (xSemaphoreTake(stateChangeMutex_, portMAX_DELAY) == pdTRUE) {
+      filterResetRequested_ = true;
+      xSemaphoreGive(stateChangeMutex_);
+    }
+  }
+
   // If it's not a 1-byte ACK response, handle the payload.
   if (data[1] != 0x12 || payloadLength - 3 != 1) {
     this->handle_payload_(payloadType, payload_data, payloadLength - 3);
@@ -480,6 +516,15 @@ void Levoit::handle_payload_(LevoitPayloadType type, uint8_t *payload, size_t le
       bool displayLock = payload[displayLockIndex] != 0x00;
   
       uint8_t fanSpeed = power ? payload[fanSpeedIndex] : 0;
+
+      // filter life: the stock firmware uses the actual running fan level (payload[9] on the Core 300S),
+      // not the configured manual level
+      filterFanLevel_ = payload[fanSpeedIndex];
+      if (device_model_ == LevoitDeviceModel::CORE_300S && len > 9) {
+        filterFanLevel_ = payload[9];
+      }
+      filterStatusSeen_ = true;
+
       bool fan1 = fanSpeed == 1; bool fan2 = fanSpeed == 2;
       bool fan3 = fanSpeed == 3; bool fan4 = fanSpeed == 4;
 
